@@ -6,25 +6,53 @@
 #include "AbilitySystemComponent.h"
 #include "HeroAbilityComponent.generated.h"
 
+class UInputAction;
 /**
  * 
  */
-UCLASS(Blueprintable, BlueprintType, Category = "Hero Abilities", meta = (BlueprintSpawnableComponents))
+
+USTRUCT()
+struct FAbilityInputBinding
+{
+	GENERATED_BODY()
+
+	int32  InputID = 0;
+	uint32 OnPressedHandle = 0;
+	uint32 OnReleasedHandle = 0;
+	TArray<FGameplayAbilitySpecHandle> BoundAbilitiesStack;
+};
+
+UCLASS(Blueprintable, BlueprintType, Category = "Hero Abilities", meta = (BlueprintSpawnableComponent))
 class OVERSEERRUNTIME_API UHeroAbilityComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
+	void SetInputBinding(UInputAction* InputAction, FGameplayAbilitySpecHandle AbilityHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
+	void ClearInputBinding(FGameplayAbilitySpecHandle AbilityHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
+	void ClearAbilityBindings(UInputAction* InputAction);
 	
-	UFUNCTION(BlueprintCallable, Category = "Hero Abilities")
-	void SetPrimaryAbility(FGameplayAbilitySpecHandle primaryAbility);
+private:
+	void OnAbilityInputPressed(UInputAction* InputAction);
 
-	UFUNCTION(BlueprintCallable, Category = "Hero Abilities")
-	void SetSecondaryAbility(FGameplayAbilitySpecHandle secondaryAbility);
+	void OnAbilityInputReleased(UInputAction* InputAction);
 
-	UFUNCTION(BlueprintCallable, Category = "Hero Abilities")
-	void ClearPrimaryAbility();
+	void RemoveEntry(UInputAction* InputAction);
 
-	UFUNCTION(BlueprintCallable, Category = "Hero Abilities")
-	void ClearSecondaryAbility();
+	void TryBindAbilityInput(UInputAction* InputAction, FAbilityInputBinding& AbilityInputBinding);
+
+	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
+
+	virtual void BeginPlay() override;
+
+	UPROPERTY(transient)
+	TMap<UInputAction*, FAbilityInputBinding> MappedAbilities;
+
+	UPROPERTY(transient)
+	UEnhancedInputComponent* InputComponent;
 };
