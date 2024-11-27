@@ -9,6 +9,6 @@ void UHeroAbilityComponent::SetAbility(TArray<TSubclassOf<UGameplayAbility>> Abi
 {
 	for (TSubclassOf<UGameplayAbility> Ability : AbilityClass)
 	{
-		GrantedAbilities.Add(Ability);
+		GrantedAbilities.Add(Ability); 
 	} 
 }
