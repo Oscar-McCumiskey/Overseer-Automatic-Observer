@@ -1,26 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
 #include "HeroAbilityComponent.generated.h"
-
-class UInputAction;
-/**
- * 
- */
-
-USTRUCT()
-struct FAbilityInputBinding
-{
-	GENERATED_BODY()
-
-	int32  InputID = 0;
-	uint32 OnPressedHandle = 0;
-	uint32 OnReleasedHandle = 0;
-	TArray<FGameplayAbilitySpecHandle> BoundAbilitiesStack;
-};
 
 UCLASS(Blueprintable, BlueprintType, Category = "Hero Abilities", meta = (BlueprintSpawnableComponent))
 class OVERSEERRUNTIME_API UHeroAbilityComponent : public UAbilitySystemComponent
@@ -28,31 +10,12 @@ class OVERSEERRUNTIME_API UHeroAbilityComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
-	void SetInputBinding(UInputAction* InputAction, FGameplayAbilitySpecHandle AbilityHandle);
-
-	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
-	void ClearInputBinding(FGameplayAbilitySpecHandle AbilityHandle);
-
-	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
-	void ClearAbilityBindings(UInputAction* InputAction);
 	
-private:
-	void OnAbilityInputPressed(UInputAction* InputAction);
+	UFUNCTION(BlueprintCallable, Category = "Hero Abilities")
+	TSubclassOf<UGameplayAbility> GetGrantedAbility(int AbilityNum) const;
 
-	void OnAbilityInputReleased(UInputAction* InputAction);
-
-	void RemoveEntry(UInputAction* InputAction);
-
-	void TryBindAbilityInput(UInputAction* InputAction, FAbilityInputBinding& AbilityInputBinding);
-
-	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
-
-	virtual void BeginPlay() override;
-
-	UPROPERTY(transient)
-	TMap<UInputAction*, FAbilityInputBinding> MappedAbilities;
-
-	UPROPERTY(transient)
-	UEnhancedInputComponent* InputComponent;
+	UFUNCTION(BlueprintCallable, Category = "Hero Abilities")
+	void SetAbility(TArray<TSubclassOf<UGameplayAbility>> AbilityClass);
+	
+	TArray<TSubclassOf<UGameplayAbility>> GrantedAbilities;
 };
