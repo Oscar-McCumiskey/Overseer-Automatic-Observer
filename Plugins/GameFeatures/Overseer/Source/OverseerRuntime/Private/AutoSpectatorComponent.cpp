@@ -8,8 +8,10 @@ UAutoSpectatorComponent::UAutoSpectatorComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	
 	// ..
+
+	currentSpecTarget = nullptr;
 }
 
 
@@ -31,24 +33,6 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	// ...
 }
 
-void UAutoSpectatorComponent::SpectateHighestPriorityPlayer()
-{
-	APawn* HighestPriorityPawn = FindHighestPriorityPlayer();
-	
-	if (HighestPriorityPawn == currentSpecTarget)
-	{
-		// Spectate target not changed
-		hasChangedSpectateTarget = false;
-	}
-	else
-	{
-		// Change spectate target
-		SelectSpectateTarget(HighestPriorityPawn);
-		currentSpecTarget = HighestPriorityPawn;
-		hasChangedSpectateTarget = true;
-	}
-}
-
 // Find player pawn with the highest priority in priority map
 APawn* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 {
@@ -68,23 +52,42 @@ APawn* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 }
 
 // Increase or decrease the priority value of a player pawn
-void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, APawn* player)
+void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime)
 {
-	playerPriorityMap.at(player) = playerPriorityMap.at(player) + priority;
-}
-
-// Attach spectate camera to a player pawn
-void UAutoSpectatorComponent::AttachToSpectateTarget(APawn* SpectateTarget)
-{
+	// Priority change is permanent
+	if (lifetime <= 0)
+	{
+		playerPriorityMap.at(player) = playerPriorityMap.at(player) + priority;
+	}
+	// Priority change is temporary
+	else
+	{
+		playerPriorityMap.at(player) = playerPriorityMap.at(player) + priority;
+	}
+	
 }
 
 // Select player pawn for spectate camera to spectate
-void UAutoSpectatorComponent::SelectSpectateTarget(APawn* spectateTarget)
+APawn* UAutoSpectatorComponent::SelectSpectateTarget()
 {
+	APawn* spectateTarget = FindHighestPriorityPlayer();
+	
+	// Assure spectate target is different
+	if (spectateTarget == currentSpecTarget)
+	{
+		ChangePlayerSpectatePriority(-500, spectateTarget);
+		spectateTarget = FindHighestPriorityPlayer();
+	}
+
+	currentSpecTarget = spectateTarget;
+	// Return new spectate target
+	return spectateTarget;
 }
 
 // Remove the priority value of a player pawn from the priority map
 void UAutoSpectatorComponent::RemovePlayerFromMap(APawn* player)
 {
+	ChangePlayerSpectatePriority(-999, player);
+	//playerPriorityMap.erase(player);
 }
 

@@ -4,11 +4,11 @@
 
 #include <list>
 
+#include <map>
+
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "AutoSpectatorComponent.generated.h"
-
-#include <map>
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -29,15 +29,12 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-	void SpectateHighestPriorityPlayer();
+	// Increase or decrease the priority value of a player pawn
+	void ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime = 0);
+	// Select player pawn for observer camera to spectate
+	APawn* SelectSpectateTarget();
 	// Find player pawn with the highest priority in priority map
 	APawn* FindHighestPriorityPlayer();
-	// Increase or decrease the priority value of a player pawn
-	void ChangePlayerSpectatePriority(int priority, APawn* player);
-	// Attach spectate camera to a player pawn
-	void AttachToSpectateTarget(APawn* SpectateTarget);
-	// Select player pawn for spectate camera to spectate
-	void SelectSpectateTarget(APawn* spectateTarget);
 	// Remove the priority value of a player pawn from the priority map 
 	void RemovePlayerFromMap(APawn* player);
 	
