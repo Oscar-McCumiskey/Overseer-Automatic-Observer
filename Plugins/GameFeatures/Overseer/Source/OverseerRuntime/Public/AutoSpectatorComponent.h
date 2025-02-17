@@ -28,21 +28,25 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-private:
-	// Increase or decrease the priority value of a player pawn
-	void ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime = 0);
 	// Select player pawn for observer camera to spectate
+	UFUNCTION(BlueprintCallable)
 	APawn* SelectSpectateTarget();
+
+	// Increase or decrease the priority value of a player pawn
+	UFUNCTION(BlueprintCallable)
+	void ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime = 0);
+
+	UPROPERTY(BlueprintReadWrite)
+	APawn* currentSpecTarget;
+
+	UPROPERTY(BlueprintReadWrite)
+	TMap<APawn*, int> playerPriorityMap;
+	
+private:
 	// Find player pawn with the highest priority in priority map
 	APawn* FindHighestPriorityPlayer();
 	// Remove the priority value of a player pawn from the priority map 
 	void RemovePlayerFromMap(APawn* player);
-	
-	std::map<APawn*, int> playerPriorityMap;
-	//std::list<> priorityList;
-	
+
 	bool hasChangedSpectateTarget = true;
-	
-	UPROPERTY()
-	APawn* currentSpecTarget;
 };

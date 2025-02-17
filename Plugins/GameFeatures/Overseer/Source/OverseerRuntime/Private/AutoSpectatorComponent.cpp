@@ -42,10 +42,10 @@ APawn* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 	for (auto player : playerPriorityMap)
 	{
 		// If player has higher priority save player and priority
-		if (player.second > highestPriority)
+		if (player.Value > highestPriority)
 		{
-			highestPriority = player.second;
-			highestPriorityPlayer = player.first;
+			highestPriority = player.Value;
+			highestPriorityPlayer = player.Key;
 		}
 	}
 	return highestPriorityPlayer;
@@ -54,15 +54,19 @@ APawn* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 // Increase or decrease the priority value of a player pawn
 void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime)
 {
-	// Priority change is permanent
-	if (lifetime <= 0)
+	// If player is null exit
+	if (player == nullptr)
 	{
-		playerPriorityMap.at(player) = playerPriorityMap.at(player) + priority;
+		return;
 	}
-	// Priority change is temporary
+
+	if (!playerPriorityMap.Contains(player))
+	{
+		playerPriorityMap.Add(player, priority);
+	}
 	else
 	{
-		playerPriorityMap.at(player) = playerPriorityMap.at(player) + priority;
+		playerPriorityMap[player] = playerPriorityMap[player] + priority;
 	}
 	
 }
@@ -73,13 +77,17 @@ APawn* UAutoSpectatorComponent::SelectSpectateTarget()
 	APawn* spectateTarget = FindHighestPriorityPlayer();
 	
 	// Assure spectate target is different
-	if (spectateTarget == currentSpecTarget)
+	if (spectateTarget == currentSpecTarget && spectateTarget != nullptr)
 	{
 		ChangePlayerSpectatePriority(-500, spectateTarget);
 		spectateTarget = FindHighestPriorityPlayer();
 	}
 
-	currentSpecTarget = spectateTarget;
+	if (spectateTarget != nullptr)
+	{
+		currentSpecTarget = spectateTarget;
+	}
+	
 	// Return new spectate target
 	return spectateTarget;
 }
@@ -88,6 +96,6 @@ APawn* UAutoSpectatorComponent::SelectSpectateTarget()
 void UAutoSpectatorComponent::RemovePlayerFromMap(APawn* player)
 {
 	ChangePlayerSpectatePriority(-999, player);
-	//playerPriorityMap.erase(player);
+	//playerPriorityMap.Remove(player);
 }
 
