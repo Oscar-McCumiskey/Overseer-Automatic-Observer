@@ -92,10 +92,3 @@ APawn* UAutoSpectatorComponent::SelectSpectateTarget()
 	return spectateTarget;
 }
 
-// Remove the priority value of a player pawn from the priority map
-void UAutoSpectatorComponent::RemovePlayerFromMap(APawn* player)
-{
-	ChangePlayerSpectatePriority(-999, player);
-	//playerPriorityMap.Remove(player);
-}
-

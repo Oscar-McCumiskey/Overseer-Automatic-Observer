@@ -45,8 +45,6 @@ public:
 private:
 	// Find player pawn with the highest priority in priority map
 	APawn* FindHighestPriorityPlayer();
-	// Remove the priority value of a player pawn from the priority map 
-	void RemovePlayerFromMap(APawn* player);
 
 	bool hasChangedSpectateTarget = true;
 };
