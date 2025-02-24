@@ -30,21 +30,21 @@ public:
 
 	// Select player pawn for observer camera to spectate
 	UFUNCTION(BlueprintCallable)
-	APawn* SelectSpectateTarget();
+	AController* SelectSpectateTarget();
 
 	// Increase or decrease the priority value of a player pawn
 	UFUNCTION(BlueprintCallable)
-	void ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime = 0);
+	void ChangePlayerSpectatePriority(int priority, AController* player, float lifetime = 0);
 
 	UPROPERTY(BlueprintReadWrite)
-	APawn* currentSpecTarget;
+	AController* currentSpecTarget;
 
 	UPROPERTY(BlueprintReadWrite)
-	TMap<APawn*, int> playerPriorityMap;
+	TMap<AController*, int> playerPriorityMap;
 	
 private:
 	// Find player pawn with the highest priority in priority map
-	APawn* FindHighestPriorityPlayer();
+	AController* FindHighestPriorityPlayer();
 
 	bool hasChangedSpectateTarget = true;
 };

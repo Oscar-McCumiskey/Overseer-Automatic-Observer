@@ -34,9 +34,9 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 }
 
 // Find player pawn with the highest priority in priority map
-APawn* UAutoSpectatorComponent::FindHighestPriorityPlayer()
+AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 {
-	APawn* highestPriorityPlayer = nullptr;
+	AController* highestPriorityPlayer = nullptr;
 	int highestPriority = -1;
 	
 	for (auto player : playerPriorityMap)
@@ -52,7 +52,7 @@ APawn* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 }
 
 // Increase or decrease the priority value of a player pawn
-void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, APawn* player, float lifetime)
+void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, AController* player, float lifetime)
 {
 	// If player is null exit
 	if (player == nullptr)
@@ -72,9 +72,9 @@ void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, APawn* 
 }
 
 // Select player pawn for spectate camera to spectate
-APawn* UAutoSpectatorComponent::SelectSpectateTarget()
+AController* UAutoSpectatorComponent::SelectSpectateTarget()
 {
-	APawn* spectateTarget = FindHighestPriorityPlayer();
+	AController* spectateTarget = FindHighestPriorityPlayer();
 	
 	// Assure spectate target is different
 	if (spectateTarget == currentSpecTarget && spectateTarget != nullptr)
