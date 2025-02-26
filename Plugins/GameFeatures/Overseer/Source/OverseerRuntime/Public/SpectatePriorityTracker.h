@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "SpectatePriorityTracker.generated.h"
 
+class UAutoSpectatorComponent;
+
 UCLASS()
 class OVERSEERRUNTIME_API ASpectatePriorityTracker : public AActor
 {
@@ -23,4 +25,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetDefaultParameters(int Priority, AController* Controller, float Lifetime, UAutoSpectatorComponent* Asc);
+
+private:
+	int Priority;
+	float Lifetime;
+
+	UPROPERTY()
+	AController* Controller;
+
+	UPROPERTY()
+	UAutoSpectatorComponent* Asc;
 };

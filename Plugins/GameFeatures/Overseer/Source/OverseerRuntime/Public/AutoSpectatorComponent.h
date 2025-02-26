@@ -2,10 +2,6 @@
 
 #pragma once
 
-#include <list>
-
-#include <map>
-
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "AutoSpectatorComponent.generated.h"
@@ -34,17 +30,24 @@ public:
 
 	// Increase or decrease the priority value of a player pawn
 	UFUNCTION(BlueprintCallable)
-	void ChangePlayerSpectatePriority(int priority, AController* player, float lifetime = 0);
+	void ChangePlayerSpectatePriority(int Priority, AController* Player, float Lifetime = 0);
 
 	UPROPERTY(BlueprintReadWrite)
-	AController* currentSpecTarget;
+	AController* CurrentSpecTarget;
 
 	UPROPERTY(BlueprintReadWrite)
-	TMap<AController*, int> playerPriorityMap;
+	TMap<AController*, int> PlayerPriorityMap;
 	
 private:
 	// Find player pawn with the highest priority in priority map
 	AController* FindHighestPriorityPlayer();
 
-	bool hasChangedSpectateTarget = true;
+	// Spawn an actor to track lifetime of a priority
+	void SpawnPriorityTracker(int Priority, AController* Player, float Lifetime);
+
+	bool bHasChangedSpectateTarget = true;
+
+	// Pointer to world
+	UPROPERTY()
+	UWorld* World;
 };

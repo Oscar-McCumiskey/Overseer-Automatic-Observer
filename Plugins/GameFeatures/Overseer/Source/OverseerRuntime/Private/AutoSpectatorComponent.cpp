@@ -2,6 +2,8 @@
 
 #include "AutoSpectatorComponent.h"
 
+#include "SpectatePriorityTracker.h"
+
 // Sets default values for this component's properties
 UAutoSpectatorComponent::UAutoSpectatorComponent()
 {
@@ -11,7 +13,8 @@ UAutoSpectatorComponent::UAutoSpectatorComponent()
 	
 	// ..
 
-	currentSpecTarget = nullptr;
+	CurrentSpecTarget = nullptr;
+	World = nullptr;
 }
 
 
@@ -21,7 +24,6 @@ void UAutoSpectatorComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 
@@ -39,7 +41,7 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 	AController* highestPriorityPlayer = nullptr;
 	int highestPriority = -1;
 	
-	for (auto player : playerPriorityMap)
+	for (auto player : PlayerPriorityMap)
 	{
 		// If player has higher priority save player and priority
 		if (player.Value > highestPriority)
@@ -51,44 +53,73 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 	return highestPriorityPlayer;
 }
 
+// Spawn an actor to track lifetime of a priority
+void UAutoSpectatorComponent::SpawnPriorityTracker(int Priority, AController* Player, float Lifetime)
+{
+	World = GetWorld();
+	
+	if (World)
+	{
+		// Setup spawn actor variables
+		const FRotator SpawnRotation = FRotator::ZeroRotator;
+		const FVector SpawnLocation = FVector::ZeroVector;
+
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		// Spawn Priority tracker
+		ASpectatePriorityTracker* PriorityTracker = World->SpawnActor<ASpectatePriorityTracker>(SpawnLocation, SpawnRotation, SpawnParameters);
+
+		if (PriorityTracker)
+		{
+			PriorityTracker->SetDefaultParameters(Priority, Player, Lifetime, this);
+		}
+	}
+}
+
 // Increase or decrease the priority value of a player pawn
-void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int priority, AController* player, float lifetime)
+void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int Priority, AController* Player, float Lifetime)
 {
 	// If player is null exit
-	if (player == nullptr)
+	if (Player == nullptr)
 	{
 		return;
 	}
 
-	if (!playerPriorityMap.Contains(player))
+	if (!PlayerPriorityMap.Contains(Player))
 	{
-		playerPriorityMap.Add(player, priority);
+		PlayerPriorityMap.Add(Player, Priority);
 	}
 	else
 	{
-		playerPriorityMap[player] = playerPriorityMap[player] + priority;
+		PlayerPriorityMap[Player] = PlayerPriorityMap[Player] + Priority;
 	}
-	
+
+	// Spawn a tracker if priority is not permanent or expiring
+	if (Lifetime != 0)
+	{
+		SpawnPriorityTracker(Priority, Player, Lifetime);
+	}
 }
 
 // Select player pawn for spectate camera to spectate
 AController* UAutoSpectatorComponent::SelectSpectateTarget()
 {
-	AController* spectateTarget = FindHighestPriorityPlayer();
+	AController* SpectateTarget = FindHighestPriorityPlayer();
 	
 	// Assure spectate target is different
-	if (spectateTarget == currentSpecTarget && spectateTarget != nullptr)
+	if (SpectateTarget == CurrentSpecTarget && SpectateTarget != nullptr)
 	{
-		ChangePlayerSpectatePriority(-500, spectateTarget);
-		spectateTarget = FindHighestPriorityPlayer();
+		ChangePlayerSpectatePriority(-500, SpectateTarget, 2);
+		SpectateTarget = FindHighestPriorityPlayer();
 	}
 
-	if (spectateTarget != nullptr)
+	if (SpectateTarget != nullptr)
 	{
-		currentSpecTarget = spectateTarget;
+		CurrentSpecTarget = SpectateTarget;
 	}
 	
 	// Return new spectate target
-	return spectateTarget;
+	return SpectateTarget;
 }
 
