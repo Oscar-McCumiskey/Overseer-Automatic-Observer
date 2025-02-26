@@ -33,6 +33,18 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+
+	// Heat map timer
+	if (heatMapTimer > 0)
+	{
+		heatMapTimer-= DeltaTime;
+	}
+	else
+	{
+		// Update heat map
+		heatMapTimer = 1 / heatMapUpdateRate;
+		//PlayerHeatMapPriority();
+	}
 }
 
 // Find player pawn with the highest priority in priority map
@@ -121,5 +133,32 @@ AController* UAutoSpectatorComponent::SelectSpectateTarget()
 	
 	// Return new spectate target
 	return SpectateTarget;
+}
+
+void UAutoSpectatorComponent::PlayerHeatMapPriority()
+{
+	// Find average position of players
+	FVector AveragePosition = FVector::ZeroVector;
+	
+	for (auto player : PlayerPriorityMap)
+	{
+		AveragePosition += player.Key->GetPawn()->GetActorLocation();
+	}
+
+	AveragePosition = AveragePosition / PlayerPriorityMap.Num();
+
+	// Change priority based on distance from average
+	for (auto player : PlayerPriorityMap)
+	{
+		// Find distance to average
+		float distance = FVector::Distance(AveragePosition, player.Key->GetPawn()->GetActorLocation());
+
+		// Adjust priority in map
+		float multiplier = 100;
+		int priority = multiplier / distance;
+		
+		PlayerPriorityMap[player.Key] = player.Value + priority;
+		SpawnPriorityTracker(priority, player.Key, 1 / heatMapUpdateRate);
+	}
 }
 

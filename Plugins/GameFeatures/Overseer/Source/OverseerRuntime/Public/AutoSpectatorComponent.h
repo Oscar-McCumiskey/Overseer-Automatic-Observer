@@ -45,9 +45,16 @@ private:
 	// Spawn an actor to track lifetime of a priority
 	void SpawnPriorityTracker(int Priority, AController* Player, float Lifetime);
 
+	// Adjust player priorities based on a heat map of players
+	void PlayerHeatMapPriority();
+
 	bool bHasChangedSpectateTarget = true;
 
 	// Pointer to world
 	UPROPERTY()
 	UWorld* World;
+
+	// Heat map variables
+	float heatMapUpdateRate = 1.0f;
+	float heatMapTimer = 0.0f;
 };
