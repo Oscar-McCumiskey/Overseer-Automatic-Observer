@@ -62,7 +62,15 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 			highestPriorityPlayer = player.Key;
 		}
 	}
-	return highestPriorityPlayer;
+
+	if (highestPriority > 0)
+	{
+		return highestPriorityPlayer;
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 // Spawn an actor to track lifetime of a priority
@@ -118,19 +126,23 @@ void UAutoSpectatorComponent::ChangePlayerSpectatePriority(int Priority, AContro
 AController* UAutoSpectatorComponent::SelectSpectateTarget()
 {
 	AController* SpectateTarget = FindHighestPriorityPlayer();
-	
-	// Assure spectate target is different
-	if (SpectateTarget == CurrentSpecTarget && SpectateTarget != nullptr)
-	{
-		ChangePlayerSpectatePriority(-500, SpectateTarget, 2);
-		SpectateTarget = FindHighestPriorityPlayer();
-	}
 
+	// If nullptr spec target is birds eye view
 	if (SpectateTarget != nullptr)
 	{
-		CurrentSpecTarget = SpectateTarget;
+		// Assure spectate target is different
+		if (SpectateTarget == CurrentSpecTarget && SpectateTarget != nullptr)
+		{
+			//ChangePlayerSpectatePriority(-500, SpectateTarget, 2);
+			//SpectateTarget = FindHighestPriorityPlayer();
+		}
+
+		if (SpectateTarget != nullptr)
+		{
+			CurrentSpecTarget = SpectateTarget;
+		}
 	}
-	
+
 	// Return new spectate target
 	return SpectateTarget;
 }
