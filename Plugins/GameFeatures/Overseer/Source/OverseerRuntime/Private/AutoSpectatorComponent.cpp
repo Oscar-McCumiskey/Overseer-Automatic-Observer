@@ -34,6 +34,24 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 	// ...
 
+	if (cameraTimer <= 0)
+	{
+		FindNewTarget = true;
+		
+		if (HasChangedSpectateTarget)
+		{
+			// Prevent rapid switching
+			cameraTimer = CameraSwitchTime;
+			HasChangedSpectateTarget = false;
+		}
+		else
+		{
+			// Spectator spectate frequency
+			cameraTimer = 0.1f;
+		}
+	}
+	cameraTimer -= DeltaTime;
+
 	// Heat map timer
 	if (heatMapTimer > 0)
 	{

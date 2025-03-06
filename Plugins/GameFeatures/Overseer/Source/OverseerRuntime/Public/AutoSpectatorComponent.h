@@ -37,6 +37,15 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	TMap<AController*, int> PlayerPriorityMap;
+
+	UPROPERTY(BlueprintReadWrite)
+	float CameraSwitchTime = 0;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool FindNewTarget = true;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool HasChangedSpectateTarget = false;
 	
 private:
 	// Find player pawn with the highest priority in priority map
@@ -48,7 +57,7 @@ private:
 	// Adjust player priorities based on a heat map of players
 	void PlayerHeatMapPriority();
 
-	bool bHasChangedSpectateTarget = true;
+	float cameraTimer = 0;
 
 	// Pointer to world
 	UPROPERTY()
