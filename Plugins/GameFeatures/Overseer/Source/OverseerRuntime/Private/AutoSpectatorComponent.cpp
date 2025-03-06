@@ -61,7 +61,8 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		// Update heat map
 		heatMapTimer = 1 / heatMapUpdateRate;
-		//PlayerHeatMapPriority();
+		PlayerHeatMapPriority();
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Heat Map Update!"));
 	}
 }
 
@@ -172,7 +173,10 @@ void UAutoSpectatorComponent::PlayerHeatMapPriority()
 	
 	for (auto player : PlayerPriorityMap)
 	{
-		AveragePosition += player.Key->GetPawn()->GetActorLocation();
+		if (player.Key->GetPawn())
+		{
+			AveragePosition += player.Key->GetPawn()->GetActorLocation();
+		}
 	}
 
 	AveragePosition = AveragePosition / PlayerPriorityMap.Num();
@@ -180,15 +184,20 @@ void UAutoSpectatorComponent::PlayerHeatMapPriority()
 	// Change priority based on distance from average
 	for (auto player : PlayerPriorityMap)
 	{
-		// Find distance to average
-		float distance = FVector::Distance(AveragePosition, player.Key->GetPawn()->GetActorLocation());
+		if (player.Key->GetPawn())
+		{
+			// Find distance to average
+			float distance = FVector::Distance(AveragePosition, player.Key->GetPawn()->GetActorLocation());
 
-		// Adjust priority in map
-		float multiplier = 100;
-		int priority = multiplier / distance;
+			// Adjust priority in map
+			float multiplier = 10000;
+			int priority = multiplier / distance;
+
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Some variable values: priority: %d"), priority));
 		
-		PlayerPriorityMap[player.Key] = player.Value + priority;
-		SpawnPriorityTracker(priority, player.Key, 1 / heatMapUpdateRate);
+			PlayerPriorityMap[player.Key] = player.Value + priority;
+			SpawnPriorityTracker(priority, player.Key, 1 / heatMapUpdateRate);
+		}
 	}
 }
 
