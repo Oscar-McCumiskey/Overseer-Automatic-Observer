@@ -82,7 +82,7 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 		}
 	}
 
-	if (highestPriority > 0)
+	if (highestPriority > 30)
 	{
 		return highestPriorityPlayer;
 	}
@@ -188,10 +188,20 @@ void UAutoSpectatorComponent::PlayerHeatMapPriority()
 		{
 			// Find distance to average
 			float distance = FVector::Distance(AveragePosition, player.Key->GetPawn()->GetActorLocation());
+			
+			// Normalise distance
+			float maxDistance = 3000;
+			float minDistance = 500;
+			float normalisedDistance = (distance - minDistance) / (maxDistance - minDistance);
 
-			// Adjust priority in map
-			float multiplier = 10000;
-			int priority = multiplier / distance;
+			// Clamp normalised between 0 and 1
+			if (normalisedDistance < 0) normalisedDistance = 0;
+			if (normalisedDistance > 1) normalisedDistance = 1;
+
+			// Priority calculation
+			float minPriority = 0;
+			float maxPriority = 30;
+			int priority = normalisedDistance * minPriority + (1 - normalisedDistance) * maxPriority;
 
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Some variable values: priority: %d"), priority));
 		
