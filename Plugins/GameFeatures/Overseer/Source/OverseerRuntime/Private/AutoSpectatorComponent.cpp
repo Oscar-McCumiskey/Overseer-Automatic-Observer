@@ -62,7 +62,6 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		// Update heat map
 		heatMapTimer = 1 / heatMapUpdateRate;
 		PlayerHeatMapPriority();
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Heat Map Update!"));
 	}
 }
 
@@ -203,7 +202,7 @@ void UAutoSpectatorComponent::PlayerHeatMapPriority()
 			float maxPriority = 30;
 			int priority = normalisedDistance * minPriority + (1 - normalisedDistance) * maxPriority;
 
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Some variable values: priority: %d"), priority));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("priority: %d"), priority));
 		
 			PlayerPriorityMap[player.Key] = player.Value + priority;
 			SpawnPriorityTracker(priority, player.Key, 1 / heatMapUpdateRate);
