@@ -102,6 +102,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Lyra|Character")
 	bool GetIsAutoRunning() const;
 
+	UPROPERTY(editAnywhere, BlueprintReadWrite, Category = "Lyra|Character")
+	int heroClass = 0;
+
 private:
 	UPROPERTY()
 	FOnLyraTeamIndexChangedDelegate OnTeamChangedDelegate;
