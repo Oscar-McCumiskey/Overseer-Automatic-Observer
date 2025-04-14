@@ -100,7 +100,8 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 		CanPredictEngagement = false;
 
 		// Find a player about to engage in a fight
-		return PlayerEngagementPrediction();
+		// return PlayerEngagementPrediction();
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Predicting")));
 	}
 
 	// Birds eye camera view if no valid target
@@ -241,23 +242,29 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 				// Previous distance
 				FVector prevPlayerPos = PreviousPlayerPositionMap[player.Key];
 				FVector prevEnemyPos = PreviousPlayerPositionMap[enemyPlayer.Key];
-
+				
 				// Current distance
 				FVector currPlayerPos = player.Key->GetPawn()->GetActorLocation();
 				FVector currEnemyPos = enemyPlayer.Key->GetPawn()->GetActorLocation();
-
+				
 				// Calculate distances
 				double prevDistance = FVector::Distance(prevEnemyPos, prevPlayerPos);
 				double currentDistance = FVector::Distance(currEnemyPos, currPlayerPos);
-
+				
 				// Calculate distance difference
 				float closingSpeed = prevDistance - currentDistance;
-
+				
 				// Only accept the fastest closing speed
 				if (closingSpeed > PlayerClosingSpeedMap[player.Key] && currentDistance < 1000)
 				{
 					PlayerClosingSpeedMap[player.Key] = closingSpeed;
 				}
+
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Is Different Team")));
+			}
+			else
+			{
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Is Same Team")));
 			}
 		}
 
