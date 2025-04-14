@@ -16,6 +16,12 @@ public:
 	// Sets default values for this component's properties
 	UAutoSpectatorComponent();
 
+	struct EngagementData
+	{
+		FVector prevPosition;
+		double closingSpeed;
+	};
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -46,6 +52,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool HasChangedSpectateTarget = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool CanPredictEngagement = false;
 	
 private:
 	// Find player pawn with the highest priority in priority map
@@ -57,11 +66,20 @@ private:
 	// Adjust player priorities based on a heat map of players
 	void PlayerHeatMapPriority();
 
+	// Prioritise players that are about to start an engagement
+	AController* PlayerEngagementPrediction();
+
+	// Find if players on different teams
+	bool IsDifferentTeam(AController* PlayerOne, AController* PlayerTwo);
+
 	float cameraTimer = 0;
 
 	// Pointer to world
 	UPROPERTY()
 	UWorld* World;
+
+	UPROPERTY()
+	TMap<AController*, FVector> PreviousPlayerPositionMap;
 
 	// Heat map variables
 	float heatMapUpdateRate = 1.0f;
