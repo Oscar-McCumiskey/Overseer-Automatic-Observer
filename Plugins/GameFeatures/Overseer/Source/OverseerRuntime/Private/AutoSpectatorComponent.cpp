@@ -100,8 +100,8 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 		CanPredictEngagement = false;
 
 		// Find a player about to engage in a fight
-		// return PlayerEngagementPrediction();
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Predicting")));
+		return PlayerEngagementPrediction();
 	}
 
 	// Birds eye camera view if no valid target
@@ -166,16 +166,13 @@ AController* UAutoSpectatorComponent::SelectSpectateTarget()
 	if (SpectateTarget != nullptr)
 	{
 		// Assure spectate target is different
-		if (SpectateTarget == CurrentSpecTarget && SpectateTarget != nullptr)
+		if (SpectateTarget == CurrentSpecTarget)
 		{
 			//ChangePlayerSpectatePriority(-500, SpectateTarget, 2);
 			//SpectateTarget = FindHighestPriorityPlayer();
 		}
-
-		if (SpectateTarget != nullptr)
-		{
-			CurrentSpecTarget = SpectateTarget;
-		}
+		
+		CurrentSpecTarget = SpectateTarget;
 	}
 
 	// Return new spectate target
@@ -229,7 +226,7 @@ void UAutoSpectatorComponent::PlayerHeatMapPriority()
 // Prioritise players that are about to start an engagement
 AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 {
-	TMap<AController*, double> PlayerClosingSpeedMap;
+	TMap<AController*, float> PlayerClosingSpeedMap;
 	
 	// For each player calculate their fastest closing speed to an enemy
 	for (auto player : PlayerPriorityMap)
@@ -239,6 +236,12 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 			// Continue if player is enemy
 			if (IsDifferentTeam(player.Key, enemyPlayer.Key))
 			{
+				// Skip iteration if players not in map
+				if (!PreviousPlayerPositionMap.Contains(enemyPlayer.Key) || !PreviousPlayerPositionMap.Contains(player.Key))
+				{
+					continue;
+				}
+				
 				// Previous distance
 				FVector prevPlayerPos = PreviousPlayerPositionMap[player.Key];
 				FVector prevEnemyPos = PreviousPlayerPositionMap[enemyPlayer.Key];
@@ -248,40 +251,57 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 				FVector currEnemyPos = enemyPlayer.Key->GetPawn()->GetActorLocation();
 				
 				// Calculate distances
-				double prevDistance = FVector::Distance(prevEnemyPos, prevPlayerPos);
-				double currentDistance = FVector::Distance(currEnemyPos, currPlayerPos);
+				float prevDistance = FVector::Distance(prevEnemyPos, prevPlayerPos);
+				float currentDistance = FVector::Distance(currEnemyPos, currPlayerPos);
 				
 				// Calculate distance difference
 				float closingSpeed = prevDistance - currentDistance;
-				
-				// Only accept the fastest closing speed
-				if (closingSpeed > PlayerClosingSpeedMap[player.Key] && currentDistance < 1000)
-				{
-					PlayerClosingSpeedMap[player.Key] = closingSpeed;
-				}
 
-				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Is Different Team")));
-			}
-			else
-			{
-				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Is Same Team")));
+				// Replace or add new closing speed entry
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Distance: %f"), currentDistance));
+
+				float maxDistance = 3000;
+				if (PlayerClosingSpeedMap.Contains(player.Key) && currentDistance < maxDistance)
+				{
+					// Only accept the fastest closing speed
+					if (closingSpeed > PlayerClosingSpeedMap[player.Key])
+					{
+						PlayerClosingSpeedMap[player.Key] = closingSpeed;
+					}
+				}
+				else if (currentDistance < maxDistance)
+				{
+					PlayerClosingSpeedMap.Add(player.Key, closingSpeed);
+				}
 			}
 		}
 
 		// Update previous position
-		PreviousPlayerPositionMap[player.Key] = player.Key->GetPawn()->GetActorLocation();
+		PreviousPlayerPositionMap.Add(player.Key, player.Key->GetPawn()->GetActorLocation());
 	}
 		
 	// Return player with the highest closing speed above a minimum
 	AController* TargetPlayer = nullptr;
+	float minClosingSpeed = 800;
 	for (auto player : PlayerClosingSpeedMap)
 	{
-		if (PlayerClosingSpeedMap[TargetPlayer] < player.Value && player.Value < 0)
+		if (player.Value < minClosingSpeed)
+		{
+			continue;
+		}
+		
+		if (TargetPlayer == nullptr)
+		{
+			TargetPlayer = player.Key;
+		}
+		
+		if (PlayerClosingSpeedMap[TargetPlayer] < player.Value)
 		{
 			TargetPlayer = player.Key;
 		}
 	}
-
+	//if (TargetPlayer != nullptr)
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Closing Speed: %f"), PlayerClosingSpeedMap[TargetPlayer]));
 	return TargetPlayer;
 }
 
