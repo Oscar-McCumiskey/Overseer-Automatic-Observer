@@ -100,7 +100,6 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 		CanPredictEngagement = false;
 
 		// Find a player about to engage in a fight
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Predicting")));
 		return PlayerEngagementPrediction();
 	}
 
@@ -247,8 +246,12 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 				FVector prevEnemyPos = PreviousPlayerPositionMap[enemyPlayer.Key];
 				
 				// Current distance
-				FVector currPlayerPos = player.Key->GetPawn()->GetActorLocation();
-				FVector currEnemyPos = enemyPlayer.Key->GetPawn()->GetActorLocation();
+				FVector currPlayerPos = FVector::ZeroVector;
+				FVector currEnemyPos = FVector::ZeroVector;
+				if (player.Key->GetPawn())	
+					currPlayerPos = player.Key->GetPawn()->GetActorLocation();
+				if (enemyPlayer.Key->GetPawn())
+					currEnemyPos = enemyPlayer.Key->GetPawn()->GetActorLocation();
 				
 				// Calculate distances
 				float prevDistance = FVector::Distance(prevEnemyPos, prevPlayerPos);
@@ -258,8 +261,6 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 				float closingSpeed = prevDistance - currentDistance;
 
 				// Replace or add new closing speed entry
-				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Distance: %f"), currentDistance));
-
 				float maxDistance = 3000;
 				if (PlayerClosingSpeedMap.Contains(player.Key) && currentDistance < maxDistance)
 				{
@@ -277,7 +278,8 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 		}
 
 		// Update previous position
-		PreviousPlayerPositionMap.Add(player.Key, player.Key->GetPawn()->GetActorLocation());
+		if (player.Key->GetPawn())
+			PreviousPlayerPositionMap.Add(player.Key, player.Key->GetPawn()->GetActorLocation());
 	}
 		
 	// Return player with the highest closing speed above a minimum
@@ -300,8 +302,7 @@ AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
 			TargetPlayer = player.Key;
 		}
 	}
-	//if (TargetPlayer != nullptr)
-		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Closing Speed: %f"), PlayerClosingSpeedMap[TargetPlayer]));
+	
 	return TargetPlayer;
 }
 
