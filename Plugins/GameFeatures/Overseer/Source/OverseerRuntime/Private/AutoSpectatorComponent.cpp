@@ -2,7 +2,9 @@
 
 #include "AutoSpectatorComponent.h"
 
+#include "ComponentUtils.h"
 #include "SpectatePriorityTracker.h"
+#include "Slate/SGameLayerManager.h"
 
 // Sets default values for this component's properties
 UAutoSpectatorComponent::UAutoSpectatorComponent()
@@ -81,14 +83,28 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 		}
 	}
 
+	
 	if (highestPriority > 30)
 	{
+		CanPredictEngagement = false;
 		return highestPriorityPlayer;
 	}
 	else
 	{
-		return nullptr;
+		CanPredictEngagement = true;
 	}
+
+	// Predict an engagement if camera is in birds eye view
+	if (CanPredictEngagement)
+	{
+		CanPredictEngagement = false;
+
+		// Find a player about to engage in a fight
+		return PlayerEngagementPrediction();
+	}
+
+	// Birds eye camera view if no valid target
+	return nullptr;
 }
 
 // Spawn an actor to track lifetime of a priority
@@ -149,16 +165,13 @@ AController* UAutoSpectatorComponent::SelectSpectateTarget()
 	if (SpectateTarget != nullptr)
 	{
 		// Assure spectate target is different
-		if (SpectateTarget == CurrentSpecTarget && SpectateTarget != nullptr)
+		if (SpectateTarget == CurrentSpecTarget)
 		{
 			//ChangePlayerSpectatePriority(-500, SpectateTarget, 2);
 			//SpectateTarget = FindHighestPriorityPlayer();
 		}
-
-		if (SpectateTarget != nullptr)
-		{
-			CurrentSpecTarget = SpectateTarget;
-		}
+		
+		CurrentSpecTarget = SpectateTarget;
 	}
 
 	// Return new spectate target
@@ -202,11 +215,125 @@ void UAutoSpectatorComponent::PlayerHeatMapPriority()
 			float maxPriority = 30;
 			int priority = normalisedDistance * minPriority + (1 - normalisedDistance) * maxPriority;
 
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("priority: %d"), priority));
-		
+			// Add priority to map
 			PlayerPriorityMap[player.Key] = player.Value + priority;
 			SpawnPriorityTracker(priority, player.Key, 1 / heatMapUpdateRate);
 		}
 	}
+}
+
+// Prioritise players that are about to start an engagement
+AController* UAutoSpectatorComponent::PlayerEngagementPrediction()
+{
+	TMap<AController*, float> PlayerClosingSpeedMap;
+	
+	// For each player calculate their fastest closing speed to an enemy
+	for (auto player : PlayerPriorityMap)
+	{
+		for (auto enemyPlayer : PlayerPriorityMap)
+		{
+			// Continue if player is enemy
+			if (IsDifferentTeam(player.Key, enemyPlayer.Key))
+			{
+				// Skip iteration if players not in map
+				if (!PreviousPlayerPositionMap.Contains(enemyPlayer.Key) || !PreviousPlayerPositionMap.Contains(player.Key))
+				{
+					continue;
+				}
+				
+				// Previous distance
+				FVector prevPlayerPos = PreviousPlayerPositionMap[player.Key];
+				FVector prevEnemyPos = PreviousPlayerPositionMap[enemyPlayer.Key];
+				
+				// Current distance
+				FVector currPlayerPos = FVector::ZeroVector;
+				FVector currEnemyPos = FVector::ZeroVector;
+				if (player.Key->GetPawn())	
+					currPlayerPos = player.Key->GetPawn()->GetActorLocation();
+				if (enemyPlayer.Key->GetPawn())
+					currEnemyPos = enemyPlayer.Key->GetPawn()->GetActorLocation();
+				
+				// Calculate distances
+				float prevDistance = FVector::Distance(prevEnemyPos, prevPlayerPos);
+				float currentDistance = FVector::Distance(currEnemyPos, currPlayerPos);
+				
+				// Calculate distance difference
+				float closingSpeed = prevDistance - currentDistance;
+
+				// Replace or add new closing speed entry
+				float maxDistance = 3000;
+				if (PlayerClosingSpeedMap.Contains(player.Key) && currentDistance < maxDistance)
+				{
+					// Only accept the fastest closing speed
+					if (closingSpeed > PlayerClosingSpeedMap[player.Key])
+					{
+						PlayerClosingSpeedMap[player.Key] = closingSpeed;
+					}
+				}
+				else if (currentDistance < maxDistance)
+				{
+					PlayerClosingSpeedMap.Add(player.Key, closingSpeed);
+				}
+			}
+		}
+
+		// Update previous position
+		if (player.Key->GetPawn())
+			PreviousPlayerPositionMap.Add(player.Key, player.Key->GetPawn()->GetActorLocation());
+	}
+		
+	// Return player with the highest closing speed above a minimum
+	AController* TargetPlayer = nullptr;
+	float minClosingSpeed = 800;
+	for (auto player : PlayerClosingSpeedMap)
+	{
+		if (player.Value < minClosingSpeed)
+		{
+			continue;
+		}
+		
+		if (TargetPlayer == nullptr)
+		{
+			TargetPlayer = player.Key;
+		}
+		
+		if (PlayerClosingSpeedMap[TargetPlayer] < player.Value)
+		{
+			TargetPlayer = player.Key;
+		}
+	}
+	
+	return TargetPlayer;
+}
+
+bool UAutoSpectatorComponent::IsDifferentTeam(AController* PlayerOne, AController* PlayerTwo)
+{
+	AActor* Owner = GetOwner();
+	
+	if (Owner)
+	{
+		FName FunctionName = TEXT("IsOnDifferentTeam");
+		UFunction* Function = Owner->FindFunction(FunctionName);
+
+		if (Function)
+		{
+			struct FuncParams
+			{
+				AController* PlayerControllerOne;
+				AController* PlayerControllerTwo;
+				bool ReturnValue;
+			};
+
+			FuncParams Params;
+			Params.PlayerControllerOne = PlayerOne;
+			Params.PlayerControllerTwo = PlayerTwo;
+
+			Owner->ProcessEvent(Function, &Params);
+
+			return Params.ReturnValue;
+		}
+	}
+
+	return false;
 }
 
