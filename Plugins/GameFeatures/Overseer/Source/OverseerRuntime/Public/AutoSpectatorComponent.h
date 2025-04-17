@@ -55,6 +55,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool CanPredictEngagement = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool PlayerEngagementActive = true;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool HeatMapActive = true;
 	
 private:
 	// Find player pawn with the highest priority in priority map

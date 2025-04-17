@@ -63,7 +63,9 @@ void UAutoSpectatorComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		// Update heat map
 		heatMapTimer = 1 / heatMapUpdateRate;
-		PlayerHeatMapPriority();
+		
+		if (HeatMapActive)
+			PlayerHeatMapPriority();
 	}
 }
 
@@ -100,7 +102,10 @@ AController* UAutoSpectatorComponent::FindHighestPriorityPlayer()
 		CanPredictEngagement = false;
 
 		// Find a player about to engage in a fight
-		return PlayerEngagementPrediction();
+		if (PlayerEngagementActive)
+		{
+			return PlayerEngagementPrediction();
+		}
 	}
 
 	// Birds eye camera view if no valid target
