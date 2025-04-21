@@ -2,11 +2,14 @@
 
 Developed with Unreal Engine 5
 
+All changes included for Overseer are contained within the Overseer plugin folders
 
-Feasability Demo Changelog:
-- Custom component "HeroAbilityComponent.ccp" and "HeroAbilityComponent.h". Attached to B_Hero_OverseerMannequin Blueprint
-- "Activate abilities" section in "B_Hero_Mannequin" blueprint event graph
-    - Assigns character abilities at runtime
-- Demo Level "L_Overseer"
-- Retarget of Murdock character animations
-- Everything in the Overseer Content plugin folder is relevant
+Controls:
+O — Toggle Auto Observer (On by default)
+Z, X — Toggle UI Widgets
+Tab — Toggle Maximum Game Speed
+<, > — Increase/Decrease Game Speed
+Manual Camera:
+Numbers 1 -> 6 — Player POV (selected player showed top left)
+Number 7 — Bird's Eye Camera
+LMB, RMB — Cycle Player POV's
