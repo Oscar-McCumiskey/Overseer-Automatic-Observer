@@ -9,6 +9,7 @@ O — Toggle Auto Observer (On by default)
 Z, X — Toggle UI Widgets
 Tab — Toggle Maximum Game Speed
 <, > — Increase/Decrease Game Speed
+
 Manual Camera:
 Numbers 1 -> 6 — Player POV (selected player showed top left)
 Number 7 — Bird's Eye Camera
